@@ -11,9 +11,18 @@
 <h1 style="
     text-align: center;
 ">Welcome to the Remote Desktop Management System</h1>
+<hr style="
+    color: black;
+">
 <div id="middle" style="
     text-align: center;
 ">
+<p>
+Please enter any valid SQL query or update statement.<br>
+If no query/update command is given the Execute button will display all suppliers information in the database.<br>
+All execution results will appear below.
+</p>
+
 	<form method="POST" action='Controller' name="MySQL">
 		<textarea id="textarea" name="textarea" rows="4" cols="50" style="height: 300px; width: 627px; margin-left: 0px; margin-right: 0px; "></textarea>
 		<br/>
@@ -21,6 +30,9 @@
 		<input type="reset" value="Clear" name="clear">
 	</form>
 </div>
+<hr style="
+    color: black;
+">
 <div id="footer" style="
     text-align: center;
 ">

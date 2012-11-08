@@ -58,48 +58,86 @@ public class Controller extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		PrintWriter out = response.getWriter(); 
-		mDBEngine = new DBEngine("jdbc:mysql://localhost:3306/project4", "root", "");
-		try {
-			mDBEngine.EstablishConnection();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		mDAO = new DAO(mDBEngine.getConnection());
-		out.println(request.getParameter("textarea"));
-		String destination  ="/MySQL.jsp";        
+ 
 		Vector<Vector<String>> results = new Vector<Vector<String>>();
 		Vector<String> columns = new Vector<String>();
-		String HTML = "";
+		
+		String destination  ="/MySQL.jsp";
+		String mQuery = request.getParameter("textarea");
+		String HTML;
+		
+		if(mQuery == "") mQuery = "select * from suppliers";
+		
+		mDBEngine = new DBEngine("jdbc:mysql://localhost:3306/project4", "root", "");
+		
 		try {
-			results = mDAO.runQuery(request.getParameter("textarea"));
-			columns = mDAO.getColumns();
-			HTML = generateHTML(results,columns);
-		} catch (SQLException e1) {
-			HTML = generateHTMLError();
-			e1.printStackTrace();
+			mDBEngine.EstablishConnection();
+			mDAO = new DAO(mDBEngine.getConnection());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
+		
+		
+		if(mQuery.toLowerCase().startsWith("select")){
+			try {
+				results = mDAO.runQuery(mQuery);
+				columns = mDAO.getColumns();
+				HTML = generateHTML(results,columns);
+			}catch (SQLException e1) {
+				HTML = generateHTMLError(e1.getMessage());
+				//e1.printStackTrace();
+			}
+		}else{
+			try{
+				int supplierStatusUpdate;
+				boolean updateSupplier = false;
+				if(mQuery.toLowerCase().contains("insert into shipments")){
+					String[] brokenString = mQuery.toLowerCase().split(" ");
+					
+					for(String word: brokenString){
+						try{
+							if(Integer.valueOf(word) >= 100){
+								supplierStatusUpdate = (Integer.valueOf(word) - 100)+1;
+								updateSupplier = true;
+							}
+						}catch(NumberFormatException e){
+							//shit went wrong
+						}
+					}
+				}
+				
+				if(updateSupplier){
+					HTML = 
+				}else{
+					HTML = generateHTMLOK(mDAO.runUpdate(mQuery));
+				}
+				
+			}catch (SQLException e1) {
+				HTML = generateHTMLError(e1.getMessage());
+				//e1.printStackTrace();
+				
+			}
+		}
+		 
+		
 		request.setAttribute("results", HTML);
 		//response.sendRedirect(response.encodeRedirectURL(destination));
 		RequestDispatcher mDispatcher = request.getRequestDispatcher(destination);
 		mDispatcher.forward(request, response);
+		
 		try {
 			mDBEngine.CloseConnection();
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	private String generateHTML(Vector<Vector<String>> mResults,Vector<String> mColumns){
-		String mHTML = "<div id='table' style='margin:auto;text-align:center;'><table border='1' style='margin: auto;'><tr>";
+		String mHTML = "<div id='table' style='margin:auto;text-align:center;width: 627px;'><table border='1' style='margin: auto;'><tr>";
 		
 		for(String mCol: mColumns){
-			mHTML+= "<td>"+mCol+"</td>";
+			mHTML+= "<td style='background-color: green;'>"+mCol+"</td>";
 		}
 		mHTML+="</tr>";
 		
@@ -114,9 +152,19 @@ public class Controller extends HttpServlet {
 		}
 		return mHTML+="</table></div>";
 	}
-	private String generateHTMLError(){
-		String mHTML = "<div id='table' style='margin:auto;text-align:center;'><table border='1' style='margin: auto;background-color: red;'><tr>";
-		mHTML += "<td>Error executing the SQL statement:<br/></td>";
+	private String generateHTMLError(String mMessage){
+		String mHTML = "<div id='table' style='margin:auto;text-align:center;width: 627px;'><table border='1' style='margin: auto;background-color: red;'><tr>";
+		mHTML += "<td>Error executing the SQL statement:<br/>"+mMessage+"</td>";
+		return mHTML;
+	}
+	private String generateHTMLOK(int mColumns){
+		String mHTML = "<div id='table' style='margin:auto;text-align:center;width: 627px;'><table border='1' style='margin: auto;background-color: green;'><tr>";
+		mHTML += "<td>The SQL statement completed successfully:<br/>"+mColumns+ " row(s) affected.</td>";
+		return mHTML;
+	}
+	private String generateHTMLOK(int mColumns, boolean mSuppliers){
+		String mHTML = "<div id='table' style='margin:auto;text-align:center;width: 627px;'><table border='1' style='margin: auto;background-color: green;'><tr>";
+		mHTML += "<td>The SQL statement completed successfully:<br/>"+mColumns+ " row(s) affected.</td>";
 		return mHTML;
 	}
 
