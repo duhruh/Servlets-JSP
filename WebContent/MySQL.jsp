@@ -26,8 +26,8 @@ All execution results will appear below.
 	<form method="POST" action='Controller' name="MySQL">
 		<textarea id="textarea" name="textarea" rows="4" cols="50" style="height: 300px; width: 627px; margin-left: 0px; margin-right: 0px; "></textarea>
 		<br/>
-		<input type="submit" value="Execute" name="execute">
-		<input type="reset" value="Clear" name="clear">
+		<input type="submit" value="Execute" name="execute" style="width: 100px;">
+		<input type="reset" value="Clear" name="clear" style="width: 100px;">
 	</form>
 </div>
 <hr style="

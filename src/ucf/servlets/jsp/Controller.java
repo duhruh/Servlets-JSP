@@ -100,7 +100,7 @@ public class Controller extends HttpServlet {
 					String temp = mQuery.substring(first+1, last);
 					temp = temp.replaceAll("'", "");
 					temp = temp.replaceAll(" ", "");
-					String[] brokenString = temp.toLowerCase().split(",");
+					String[] brokenString = temp.split(",");
 					
 					for(String word: brokenString){
 						try{
@@ -109,8 +109,8 @@ public class Controller extends HttpServlet {
 								updateSupplier = true;
 							}
 						}catch(NumberFormatException e){
-							if(word.startsWith("s")){
-								supplierSnum = word.replace("(", "");
+							if(word.startsWith("S")){
+								supplierSnum = word;
 							}
 						}
 					}
@@ -126,6 +126,9 @@ public class Controller extends HttpServlet {
 						else
 							mIN += ",'"+row.get(0)+"'";
 					}
+					
+					if(supplierSnum != "") mIN += ",'"+supplierSnum+"'";
+					
 					String blah = "UPDATE suppliers set status = (status+"+5+") where snum IN ("+mIN+")";
 
 					HTML = generateHTMLOK(mDAO.runUpdate(mQuery),mDAO.runUpdate(blah));
