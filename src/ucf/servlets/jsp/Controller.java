@@ -91,25 +91,44 @@ public class Controller extends HttpServlet {
 			}
 		}else{
 			try{
-				int supplierStatusUpdate;
+				int supplierStatusUpdate = 0;
+				String supplierSnum = "";
 				boolean updateSupplier = false;
-				if(mQuery.toLowerCase().contains("insert into shipments")){
-					String[] brokenString = mQuery.toLowerCase().split(" ");
+				if(mQuery.toLowerCase().contains("insert into shipments") || mQuery.toLowerCase().contains("update shipments")){
+					int first = mQuery.indexOf("(");
+					int last = mQuery.indexOf(")");
+					String temp = mQuery.substring(first+1, last);
+					temp = temp.replaceAll("'", "");
+					temp = temp.replaceAll(" ", "");
+					String[] brokenString = temp.toLowerCase().split(",");
 					
 					for(String word: brokenString){
 						try{
 							if(Integer.valueOf(word) >= 100){
-								supplierStatusUpdate = (Integer.valueOf(word) - 100)+1;
+								//supplierStatusUpdate = (Integer.valueOf(word) / 100) + 1;
 								updateSupplier = true;
 							}
 						}catch(NumberFormatException e){
-							//shit went wrong
+							if(word.startsWith("s")){
+								supplierSnum = word.replace("(", "");
+							}
 						}
 					}
 				}
 				
 				if(updateSupplier){
-					HTML = 
+					//HTML = generateHTMLOK(mDAO.runUpdate(mQuery), mDAO.runUpdate("update suppliers set status = status +"+5+"where quantity >="+100));
+					Vector<Vector<String>> temp = mDAO.runQuery("select DISTINCT(suppliers.snum) from suppliers join shipments on suppliers.snum = shipments.snum and shipments.quantity >= 100");
+					String mIN = "";
+					for(Vector row: temp){
+						if(mIN == "")
+							mIN += "'"+row.get(0)+"'";
+						else
+							mIN += ",'"+row.get(0)+"'";
+					}
+					String blah = "UPDATE suppliers set status = (status+"+5+") where snum IN ("+mIN+")";
+
+					HTML = generateHTMLOK(mDAO.runUpdate(mQuery),mDAO.runUpdate(blah));
 				}else{
 					HTML = generateHTMLOK(mDAO.runUpdate(mQuery));
 				}
@@ -162,9 +181,10 @@ public class Controller extends HttpServlet {
 		mHTML += "<td>The SQL statement completed successfully:<br/>"+mColumns+ " row(s) affected.</td>";
 		return mHTML;
 	}
-	private String generateHTMLOK(int mColumns, boolean mSuppliers){
+	private String generateHTMLOK(int mColumns, int mSuppliers){
 		String mHTML = "<div id='table' style='margin:auto;text-align:center;width: 627px;'><table border='1' style='margin: auto;background-color: green;'><tr>";
-		mHTML += "<td>The SQL statement completed successfully:<br/>"+mColumns+ " row(s) affected.</td>";
+		mHTML += "<td>The SQL statement completed successfully:<br/>"+mColumns+ " row(s) affected.<br> " +
+				"Business Logic Detected! - Updating Suppliers Status<br> Business Logic update "+mSuppliers+" supplier status marks.</td>";
 		return mHTML;
 	}
 
